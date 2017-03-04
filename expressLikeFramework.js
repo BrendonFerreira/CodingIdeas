@@ -1,26 +1,32 @@
+const futurename = require('futurename');
+const app = new futurename.App()
+
+// pipe usage 
+fn( request, response ){
+   return `The message is ${request.params.message}`;
+}  
+
 // example 1
-app.on('request', function(request, response){
-  response.body = "<h1>Hello World</h1>"
-  return request.pipe(response);
+app.on('request', (request) => {
+  return { body : "<h1>Hello World</h1>" }
 });
 
 // example 2
-const redirect = ( request, response ) => {
+const mainRedirector = (request, response) => {
   switch( request.url ){
     case "/home" : {
-      request.body = "<h1>Hello World</h1>";
-      request.pipe(response)
+      // The usage of function response may be optional
+      // but will not be able to apply pipe middlewheres
+      return response({ body : "<h1>Hello World</h1>" })
+    } 
+    case "/message" : {
+      return { body : "<h1>This is awesome</h1>" }
     }
   }
 }
 
-application = function( request ) {
-    return request.pipe( redirect )
-}
-
 app.on('request', function(request, response){
-    request.pipe( route('home') )
-    return request.pipe( application ).pipe( response )
+    return request.pipe( mainRedirector )
 })
 
-
+app.listen(3000)
