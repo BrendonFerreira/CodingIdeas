@@ -1,25 +1,23 @@
 const futurename = require('futurename');
-const app = new futurename.App()
+const app = new futurename.App();
 
-const routesApiIndexer = (request, response)=>{
-   // This is going to be insane!!! (I'm so exited!)
-   return request.routeMatch( require('./routesConfig') ).action( request, response)
-}
+const { responsePipes, requestPipes } = require('./mainPipes');
 
-const responsePipes = function() {
-   return piper([pug(), compress()]) 
-}
-
-const requestPipes = function() {
-   return piper([require('configured/multer'), routeMatch(), routesApiIndexer()])
-}
-
-app.on('response', (response, end) => {  
-   return response.pipe(responsePipes()).pipe(end)
+app.on('response', (response) => {  
+   return response.pipe(responsePipes())
 })
 
-app.on('request', (request, end) => {
-   return request.pipe(requestPipes()).pipe(end)
+app.on('request', (request) => {
+   return request.pipe(requestPipes())
+})
+
+// Huge curious to see this working 
+app.attach( (request, response) => {
+   return require('http').createServer( (req, res) => {
+      let parsedRequest = request( req )
+      let parsedResponse = response( parsedRequest )
+      res( parsedResponse )
+   })
 })
 
 app.listen(3000)
