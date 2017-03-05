@@ -1,3 +1,7 @@
+const routesApiIndexer = (request, response)=> {
+   return request.routeMatch( require('./routesConfig') ).action( request, response);
+}
+
 module.exports = {
   responsePipes : function() {
      return piper([pug(), compress()]) 
