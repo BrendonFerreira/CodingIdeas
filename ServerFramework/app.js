@@ -1,23 +1,26 @@
-const futurename = require('futurename');
-const app = new futurename.App();
+// What if server was oriented to events
 
-const { responsePipes, requestPipes } = require('./mainPipes');
+let {listener} = new App();
 
-app.on('response', (response) => {  
-   return response.pipe(responsePipes())
+listener.attach( apiRequests );
+
+listener.on('notFoundPage', requestData => {
+   this.emit('response', 'page not found')
 })
 
-app.on('request', (request) => {
-   return request.pipe(requestPipes())
+listener.on('homeRequest', requestData => {
+   this.emit('response', "Hello World")
 })
 
-// Huge curious to see this working 
-app.attach( (request, response) => {
-   return require('http').createServer( (req, res) => {
-      let parsedRequest = request( req )
-      let parsedResponse = response( parsedRequest )
-      res( parsedResponse )
-   })
+listener.on('welcomeApiRequest', requestData => {
+   this.emit('response', {'message': 'welcome to our api'})
 })
 
-app.listen(3000)
+listener.on('request', (requestData) => {
+   let {url} = requestData; 
+   
+   urlMatches(url, '/api') ? return this.emit('welcomeApiRequest',requestData) : null;
+   urlMatches(url, '/home') ? return this.emit('homeRequest',requestData) : null;
+   this.emit('notFoundPage', requestData)
+   
+)
