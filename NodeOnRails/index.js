@@ -54,6 +54,8 @@ function Model(name, fn, db) {
 
     model.middleweres = {} 
 
+    model.schema = {}
+
     model.define_middlewere = ( action, fn ) => {
         model.middleweres[action] = [
             ...model.middleweres[action] || [],
@@ -86,6 +88,7 @@ function Model(name, fn, db) {
     }
 
     model.define_fields = (schema) => {
+        model.schema = schema
         model.define_middleweres('insert', [
             (object, next) => {
                 let newObject = {}
@@ -107,6 +110,7 @@ function Model(name, fn, db) {
         ])
         return model;
     }
+    model.define_schema = model.define_fields 
 
     model.has_many = (Model) => {
     }
@@ -151,14 +155,16 @@ const Post = new Model('post', function ({User, Comment}) {
 const Posts = () => {
     return {
         index: () => Post.find(),
-        create: (post) => Post.insert(post)
+        create: (post) => Post.insert(post),
+        getModel: () => Post
     }
 }
 
 const Users = () => {
     return {
         index: () => User.find(),
-        create: (user) => User.insert(user)
+        create: (user) => User.insert(user),
+        getModel: () => User,
     }
 }
 
@@ -171,5 +177,47 @@ const Users = () => {
     await Users().create({name: "Tux World da silva", age: "19"})
     await Users().create({name: "XPTO World da silva", age: "31"})
     await Posts().create({title: "Hello World", content: "This is my first post"})
-    console.log ( await Users().index() )
 })()
+
+const futureExports = { 
+    main_route: '/user',
+    controller: Users,
+    child: {
+        '/:id': { 
+            'get': 'consult'
+        },
+        '/': {
+            'post': 'create',
+            'get': Users().index
+        }
+    }
+}
+
+const Application = ( function() {
+
+    const routes = [];
+
+    return {
+        registerRoute(config) {
+            routes.push(config)
+        },
+        start(port){
+            const http = require('http')
+            const server = http.createServer( function(req, res){
+                let {url} = req
+                let {child} = routes[0]
+                let {get} = child['/']
+                get().then(result => {
+                    res.write( JSON.stringify( result ).toString() )
+                    res.end()
+                })
+            });
+            server.listen(port)
+        }
+    }
+    
+
+})()
+
+Application.registerRoute(futureExports)
+Application.start(3000)
