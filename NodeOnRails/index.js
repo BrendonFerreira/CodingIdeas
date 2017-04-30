@@ -5,27 +5,32 @@ function Query( config ) {
 function Collection(){
     this.items= [];
     
-    this.find = (query) => {
+    this._find = (query) => {
         return new Promise( (resolve, reject) => {
             resolve( this.items.filter( new Query(query) ) )
         })
     }
-    this.findOne = (query) => {
+    this._findOne = (query) => {
         return new Promise( (resolve, reject) => {
             resolve( this.items.find( new Query(config) ) )
         })
     }
-    this.remove = (query) => {
+    this._remove = (query) => {
         return new Promise( (resolve, reject) => {
             let before = this.items.length
             this.items = this.items.filter( new Query(query) )
             resolve( 'removed: '+ before - this.items.length  )
         })
     }
-    this.insert = (data) => {
+    this._insert = (data) => {
         return new Promise( (resolve, reject) => {
             this.items.push(data);
-            resolve( "Inserted" )
+            resolve( data )
+        })
+    }
+    this._count = () => {
+        return new Promise( resolve => {
+            resolve( this.items.length )
         })
     }
     return this;
@@ -47,51 +52,79 @@ function Model(name, fn, db) {
 
     const model = db.createCollection(name)
 
-    let parser = i => i
+    model.middleweres = {} 
 
-    model.middlewheres = {
-    } 
-
-    model.defineMiddleWhere = ( action, fn ) => {
-        model.middlewheres[action] = [
-            ...model.middlewheres[action] || [],
+    model.define_middlewere = ( action, fn ) => {
+        model.middleweres[action] = [
+            ...model.middleweres[action] || [],
             fn
         ]
     }
     
-    model.defineMiddleWheres = ( action, fnArray ) => {
-        model.middlewheres[action] = [
-            ...model.middlewheres[action],
+    model.define_middleweres = ( action, fnArray ) => {
+        model.middleweres[action] = [
+            ...model.middleweres[action] || [],
             ...fnArray
         ]
     }
 
-    model.applyMiddleWheres = ( action ) => {
-        return (params) => {
-            return model[action](...params)
-            return new Promise( (resolve, reject) => {
-                resolve(model[action])
-                //return new Promise.all( model.middlewheres[action].map( middlewheres => middlewheres() ) )
+    model.apply_middleweres = ( action ) => {
+        return ( params ) => {
+            return new Promise( (resolve) => {
+                const chain = ( params , middleweres ) => {
+                    try {
+                        middleweres.shift()(params, (result) => {
+                            chain(result, middleweres)
+                        })
+                    } catch(i) {
+                        resolve(params)
+                    }
+                }
+                chain( params , [...model.middleweres[action]] )
             })
         }
     }
 
     model.define_fields = (schema) => {
-        model.defineMiddleWhere('insert', (object) => {
-            return new Promise( resolve => {
-                resolve(Object.keys(schema).map( (field, constructor) => {
-                    return (input) => constructor( input[field] )
-                }))
-            });
-        })
+        model.define_middleweres('insert', [
+            (object, next) => {
+                let newObject = {}
+                for( let index in schema ){
+                    newObject[index] = schema[index]( object[index] )
+                }
+                next(newObject)
+            }, 
+            (object, next) => {
+                object.createdAt = new Date()
+                next(object)
+            },
+            (object, next) => {
+                db.getCollection(name)._count().then((result)=>{      
+                    object.id = result
+                    next(object)
+                })
+            }
+        ])
+        return model;
     }
 
     model.has_many = (Model) => {
     }
 
-    model.belongs_to = (Model) => {
+    model.belongs_to =  (Model) => {
     }
 
+    model.insert = (data) => {
+        return new Promise( (resolve, reject) => {
+            model.apply_middleweres('insert')(data).then( (result) => {
+                model._insert(result).then(resolve)
+            })
+        })    
+    }
+
+    model.find = model._find
+    model.findOne = model._findOne
+    model.remove = model._remove
 
     return fn.bind( model )(db)
 }
@@ -129,19 +162,14 @@ const Users = () => {
     }
 }
 
-Users().create({name: "Hello World da silva", age: "23"}).then((createdUser) => {
-    Users().index().then(console.log)
-})
-Posts().create({title: "Hello World", content: "This is my first post"}).then((createdObject)=>{
-    Posts().index().then(console.log).catch(console.log)
-})
-
-/*
-module.exports = {
-    database : MySql,
-    controllers : [
-        Users,
-        Posts
-    ]
-}
-*/
+(async function(){
+    await Users().create({name: "Hello World da silva", age: "23"})
+    await Users().create({name: "Silva World da silva", age: "21"})
+    await Users().create({name: "Pereira World da silva", age: "18"})
+    await Users().create({name: "World da silva", age: "30"})
+    await Users().create({name: "World da Silva World da silva", age: "29"})
+    await Users().create({name: "Tux World da silva", age: "19"})
+    await Users().create({name: "XPTO World da silva", age: "31"})
+    await Posts().create({title: "Hello World", content: "This is my first post"})
+    console.log ( await Users().index() )
+})()
