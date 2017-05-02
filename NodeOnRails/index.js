@@ -6,23 +6,25 @@ const Collection = require('./collection')
 
 
 // Controllers
-const Posts = () => {
+const Posts = ( /* Put models access here? */ ) => {
     const Post = new Model( 'post', require('./app/models/post'), DataBase )
     return {
-        index: (pagination) => Post.find(pagination),
+        index: (search, pagination) => Post.find(search,pagination),
         consult: (id) => Post.find({id}),
-        create: (post) => Post.insert(post),
-        update: (id, post) => Post.update(id, post) 
+        create: (data) => Post.insert(data),
+        update: (id, data) => Post.update({id}, data), 
+        remove: id => Post.remove({id})
     }
 }
 
-const Users = () => {
+const Users = ( /* Put models access here? */ ) => {
     const User = new Model( 'user', require('./app/models/user'), DataBase )
     return {
-        index: (pagination) => User.find(pagination),
+        index: (search, pagination) => User.find(search,pagination),
         consult: (id) => User.find({id}),
         create: (user) => User.insert(user),
-        update: (id, user) => User.update(id, user) 
+        update: (id, user) => User.update({id}, user), 
+        remove: id => User.remove({id})
     }
 }
 
