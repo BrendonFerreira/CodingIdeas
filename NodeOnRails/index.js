@@ -57,15 +57,8 @@ const UsersRouter = (route) => {
 }
                 
 const Application = require('./application')
-const {router: Router, main_page} = Application
-
-const user_router = Router()
-user_router.get('/user', main_page)
-user_router.get('/user/:id', main_page)
-
-const application_router = Router();
-application_router.get('/', main_page)
-application_router.use(user_router)
+const router = require('express').Router;
+router.use( Application.createRoute(UsersRouter) )
 
 Application.use(application_router)
 Application.start(3000)
