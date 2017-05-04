@@ -4,10 +4,8 @@ const DataBase = require('./database')
 const Model = require('./model')
 const Collection = require('./collection')
 
-
 // Controllers
-const Posts = ( /* Put models access here? */ ) => {
-    const Post = new Model( 'post', require('./app/models/post'), DataBase )
+const Posts = ( { Post } ) => {
     return {
         index: (search, pagination) => Post.find(search,pagination),
         consult: (id) => Post.find({id}),
@@ -17,8 +15,8 @@ const Posts = ( /* Put models access here? */ ) => {
     }
 }
 
-const Users = ( /* Put models access here? */ ) => {
-    const User = new Model( 'user', require('./app/models/user'), DataBase )
+// I hope 
+const Users = ( { User } ) => {
     return {
         index: (search, pagination) => User.find(search,pagination),
         consult: (id) => User.find({id}),
@@ -28,16 +26,20 @@ const Users = ( /* Put models access here? */ ) => {
     }
 }
 
+const Models = {
+    Post: new Model( 'post', require('./app/models/post'), DataBase ),
+    User: new Model( 'user', require('./app/models/user'), DataBase )
+}
 
-Users().create({name: "Silva World da silva", age: "21"}).then( (response) => { 
-    Users().create({name: "Hello World da silva", age: "23"}).then( (response) => { 
-        Users().create({name: "Pereira World da silva", age: "18"}).then( (response) => { 
-            Users().create({name: "World da silva", age: "30"}).then( (response) => { 
-                Users().create({name: "Tux World da silva", age: "19"}).then( (response) => { 
-                    Users().create({name: "World da Silva World da silva", age: "29"}).then( (response) => { 
-                        Users().create({name: "XPTO World da silva", age: "31"}).then( (response) => { 
-                            Posts().create({title: "Hello World", content: "This is my first post"}).then( (response) => { 
-                                Users().index().then(console.log)
+Users(Models).create({name: "Silva World da silva", age: "21"}).then( (response) => { 
+    Users(Models).create({name: "Hello World da silva", age: "23"}).then( (response) => { 
+        Users(Models).create({name: "Pereira World da silva", age: "18"}).then( (response) => { 
+            Users(Models).create({name: "World da silva", age: "30"}).then( (response) => { 
+                Users(Models).create({name: "Tux World da silva", age: "19"}).then( (response) => { 
+                    Users(Models).create({name: "World da Silva World da silva", age: "29"}).then( (response) => { 
+                        Users(Models).create({name: "XPTO World da silva", age: "31"}).then( (response) => { 
+                            Posts(Models).create({title: "Hello World", content: "This is my first post"}).then( (response) => { 
+                                Users(Models).index().then(console.log)
                             })
                         })
                     })
