@@ -1,10 +1,10 @@
-module.exports = function User({Comment, Post}) {
-    this.name = () => 'user'
-    this.define_schema({    
+module.exports = ( model, {Comment, Post} ) => {
+    model.name = () => 'user'
+    model.define_schema({    
         name: String,
         age: Number
     })
-    this.has_many(Comment)
-    this.has_many(Post)
-    return this;
+    model.has_many(Comment)
+    model.has_many(Post)
+    return model;
 }
