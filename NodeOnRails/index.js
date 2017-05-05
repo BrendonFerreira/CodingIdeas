@@ -6,6 +6,13 @@ const Collection = require('./collection')
 
 // Controllers
 const Posts = ( { Post } ) => {
+    
+    const index = (search, pagination) => Post.find(search,pagination),
+    consult: (id) => Post.find({id}),
+    create: (data) => Post.insert(data),
+    update: (id, data) => Post.update({id}, data), 
+    remove: id => Post.remove({id})
+    
     return {
         index: (search, pagination) => Post.find(search,pagination),
         consult: (id) => Post.find({id}),
@@ -15,15 +22,25 @@ const Posts = ( { Post } ) => {
     }
 }
 
-const Users = ( { User } /* access for another functions here? */ ) => {
-    return {
-        index: { pagination } => User.find( ...pagination ), // Pagination plugin, parse all requests and detect, maybe the id can be used by this way 
-        consult: { params : { id } } => User.find(id), 
-        create: { undefined, body } => User.insert(body), // If has some error with insert will be returned to controller
-        update: { params : { id }, body } => User.update(id, body),
-        remove: { params: { id } } => User.remove(id),
-        view: { pagination }    
-    }
+// First parameter come with default controller values
+const Users = ( controller, { User /* Access to all models! */ } ) => {
+    
+    controller.index = { pagination } =>
+        User.find( ...pagination );
+    
+    controller.consult = { params: { id } } => 
+        User.find( id ); 
+    
+    controller.create = { undefined, body } => 
+        User.insert(body);
+    
+    controller.update = { params : { id }, body } => 
+        User.update(id, body);
+    
+    controller.remove = { params: { id } } => 
+        User.remove(id);
+    
+    return controller;
 }
 
 const Models = {
