@@ -17,7 +17,7 @@ const Posts = ( { Post } ) => {
 
 const Users = ( { User } /* access for another functions here? */ ) => {
     return {
-        index: { pagination } => User.find( ...pagination ), // Pagination plugin, parse all requests and detect  
+        index: { pagination } => User.find( ...pagination ), // Pagination plugin, parse all requests and detect, maybe the id can be used by this way 
         consult: { params : { id } } => User.find(id), 
         create: { undefined, body } => User.insert(body), // If has some error with insert will be returned to controller
         update: { params : { id }, body } => User.update(id, body),
