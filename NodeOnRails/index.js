@@ -18,11 +18,11 @@ const Posts = ( { Post } ) => {
 // I hope 
 const Users = ( { User } ) => {
     return {
-        index: (search, pagination) => User.find(search,pagination),
-        consult: (id) => User.find({id}),
-        create: (user) => User.insert(user),
-        update: (id, user) => User.update({id}, user), 
-        remove: id => User.remove({id})
+        index: { params } => User.paginateWithParams( params ),
+        consult: { params : { id } } => User.find({id}),
+        create: { undefined, body } => User.insert(body), // If has some error with insert will be returned to controller
+        update: { params, body } => User.update({id}, body),
+        remove: { params } => User.remove({id})
     }
 }
 
@@ -30,6 +30,11 @@ const Models = {
     Post: new Model( 'post', require('./app/models/post'), DataBase ),
     User: new Model( 'user', require('./app/models/user'), DataBase )
 }
+
+// Create controller
+//   define wich parameter wanted to controller from request
+//   i think in add something like before middlewheres to parse request
+//   and return on a object
 
 Users(Models).create({name: "Silva World da silva", age: "21"}).then( (response) => { 
     Users(Models).create({name: "Hello World da silva", age: "23"}).then( (response) => { 
