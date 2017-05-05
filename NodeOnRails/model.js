@@ -84,7 +84,7 @@ function Model(name, fn, db) {
     model.findOne = model._findOne
     model.remove = model._remove
 
-    return fn( model )(db)
+    return fn( model, db )
 }
 
 module.exports = Model
