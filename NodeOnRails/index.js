@@ -15,14 +15,14 @@ const Posts = ( { Post } ) => {
     }
 }
 
-// I hope 
-const Users = ( { User } ) => {
+const Users = ( { User } /* access for another functions here? */ ) => {
     return {
-        index: { params } => User.paginateWithParams( params ),
-        consult: { params : { id } } => User.find({id}),
+        index: { pagination } => User.find( ...pagination ), // Pagination plugin, parse all requests and detect  
+        consult: { params : { id } } => User.find(id), 
         create: { undefined, body } => User.insert(body), // If has some error with insert will be returned to controller
-        update: { params, body } => User.update({id}, body),
-        remove: { params } => User.remove({id})
+        update: { params : { id }, body } => User.update(id, body),
+        remove: { params: { id } } => User.remove(id),
+        view: { pagination }    
     }
 }
 
