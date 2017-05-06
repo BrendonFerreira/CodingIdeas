@@ -5,42 +5,17 @@ const Model = require('./model')
 const Collection = require('./collection')
 
 // Controllers
-const Posts = ( { Post } ) => {
-    
-    const index = (search, pagination) => Post.find(search,pagination),
-    consult: (id) => Post.find({id}),
-    create: (data) => Post.insert(data),
-    update: (id, data) => Post.update({id}, data), 
-    remove: id => Post.remove({id})
-    
-    return {
-        index: (search, pagination) => Post.find(search,pagination),
-        consult: (id) => Post.find({id}),
-        create: (data) => Post.insert(data),
-        update: (id, data) => Post.update({id}, data), 
-        remove: id => Post.remove({id})
-    }
+const Posts = ( generateController, { Post } ) => {
+    return generateController(Post, {
+        // Extensions
+    })
 }
 
 // First parameter come with default controller values
-const Users = ( controller, { User /* Access to all models! */ } ) => {
-    
-    controller.index = { pagination } =>
-        User.find( ...pagination );
-    
-    controller.consult = { params: { id } } => 
-        User.find( id ); 
-    
-    controller.create = { undefined, body } => 
-        User.insert(body);
-    
-    controller.update = { params : { id }, body } => 
-        User.update(id, body);
-    
-    controller.remove = { params: { id } } => 
-        User.remove(id);
-    
-    return controller;
+const Users = ( generateController, { User } ) => {
+    return generateController(User, {
+        // Extensions
+    }) 
 }
 
 const Models = {
@@ -53,15 +28,63 @@ const Models = {
 //   i think in add something like before middlewheres to parse request
 //   and return on a object
 
-Users(Models).create({name: "Silva World da silva", age: "21"}).then( (response) => { 
-    Users(Models).create({name: "Hello World da silva", age: "23"}).then( (response) => { 
-        Users(Models).create({name: "Pereira World da silva", age: "18"}).then( (response) => { 
-            Users(Models).create({name: "World da silva", age: "30"}).then( (response) => { 
-                Users(Models).create({name: "Tux World da silva", age: "19"}).then( (response) => { 
-                    Users(Models).create({name: "World da Silva World da silva", age: "29"}).then( (response) => { 
-                        Users(Models).create({name: "XPTO World da silva", age: "31"}).then( (response) => { 
-                            Posts(Models).create({title: "Hello World", content: "This is my first post"}).then( (response) => { 
-                                Users(Models).index().then(console.log)
+
+function Controller(controller, Models) {
+    const getDefaultCrudFunctions = (Model, ToExtend={}) => {
+        return Object.assign({
+            index : ({ pagination }) => Model.find( ...pagination ),
+            consult: ({ params: { id } }) => Model.find( id ),
+            create: ({ undefined, body }) => Model.insert(body),
+            update: ({ params : { id }, body }) => Model.update(id, body),
+            remove: ({ params: { id } }) => Model.remove(id)
+        }, ToExtend)
+    }
+
+    return controller( getDefaultCrudFunctions , Models );
+}
+
+function Router(nativeRouter, routesConfigurator, controller) {
+
+    const parseRoute = ( root, path ) => `${root}${path}`;
+    let rootName = ""
+    const untouchedRouter = nativeRouter();
+    const routerActioner = nativeRouter();
+
+    routerActioner.create = function(name) {
+        rootName = name;
+     
+        for( let method of ['get', 'post', 'delete', 'put', 'patch'] ){
+            routerActioner[method] = ( path, functionName ) => {
+                console.log( parseRoute(rootName, path))
+                return untouchedRouter[method]( parseRoute(rootName, path) , controller[functionName]  )
+            }
+        }
+        routerActioner.get('/', 'index')
+        routerActioner.get('/:id', 'consult')
+        routerActioner.post('/', 'create')
+        routerActioner.put('/:id', 'update')
+
+    }
+
+    
+
+    
+
+    return routesConfigurator(routerActioner)
+}
+
+const UsersController = new Controller( Users , Models);
+const PostsController = new Controller( Posts , Models);
+
+UsersController.create({name: "Silva World da silva", age: "21"}).then( (response) => { 
+    UsersController.create({name: "Hello World da silva", age: "23"}).then( (response) => { 
+        UsersController.create({name: "Pereira World da silva", age: "18"}).then( (response) => { 
+            UsersController.create({name: "World da silva", age: "30"}).then( (response) => { 
+                UsersController.create({name: "Tux World da silva", age: "19"}).then( (response) => { 
+                    UsersController.create({name: "World da Silva World da silva", age: "29"}).then( (response) => { 
+                        UsersController.create({name: "XPTO World da silva", age: "31"}).then( (response) => { 
+                            UsersController.create({title: "Hello World", content: "This is my first post"}).then( (response) => { 
+                                UsersController.index().then(console.log)
                             })
                         })
                     })
@@ -71,18 +94,13 @@ Users(Models).create({name: "Silva World da silva", age: "21"}).then( (response)
     })
 }) 
 
-const UsersRouter = (route) => {
-    route.main('user')
-    route.get('/')
-    route.get('/:id', 'consult')
-    route.post('/', 'create')
-    route.set('/:id', 'update')
-    return route;
+const UsersRouter = (routes) => {
+    routes.create('user')
+    return routes;
 }
                 
 const Application = require('./application')
-const router = require('express').Router;
-router.use( Application.createRoute(UsersRouter) )
 
-Application.use(application_router)
+
+Application.use( new Router(Application.getRouter, UsersRouter, UsersController) )
 Application.start(3000)

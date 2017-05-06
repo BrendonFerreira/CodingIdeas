@@ -12,7 +12,7 @@ const Application = ( function() {
         use(...a) {
             router.use(...a)
         },
-        router() {
+        getRouter() {
             return express.Router();
         },
         start(port){
