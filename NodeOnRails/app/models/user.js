@@ -1,10 +1,12 @@
-module.exports = ( model, {Comment, Post} ) => {
-    model.name = () => 'user'
+
+
+
+const User = module.exports = ( createModel, {Post} ) => {
+    const model = createModel('user')
     model.define_schema({    
         name: String,
         age: Number
-    })
-    model.has_many(Comment)
+    }) // Will be filtered
     model.has_many(Post)
     return model;
 }

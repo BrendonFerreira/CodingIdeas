@@ -1,17 +1,19 @@
 const RequestHasPermission = require('../helpers/request_has_permission')
 
-module.exports = ( model, {Permission} ) => {
-    model.name = () => 'post';
+module.exports = ( createModel, {} ) => {
+    const model = createModel('post')
+    
     model.define_schema({
         title: String,
-        content: String
+        content: String,
+        creatorId: Number 
     })
-    model.validate({
-        insert: RequestHasPermission(Permission)
-    })
+
     model.define_middlewere('insert', (object, next) => {
-        Socket.emit('new post', object)
-        next()
+        // Send to socket or something
+        console.log("Creating new POST!!!", object.title)
+        next(object)
     })
+
     return model;
 }

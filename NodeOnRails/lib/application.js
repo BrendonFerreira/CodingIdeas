@@ -1,19 +1,18 @@
 const express = require('express')
 
-const Application = ( function() {
+const Application = module.exports = ( function() {
 
     const router = express.Router()
-
     return {
         main_page(req, res) {
             res.json({message: 'Hello World'})
             res.end()
         },
-        use(...a) {
-            router.use(...a)
-        },
         getRouter() {
-            return express.Router();
+            return express.Router()
+        },
+        use(p) {
+            return router.use(p)
         },
         start(port){
             const app = express()
@@ -24,5 +23,3 @@ const Application = ( function() {
     
 
 })()
-
-module.exports = Application
