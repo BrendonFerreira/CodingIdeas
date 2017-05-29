@@ -1,7 +1,7 @@
 const shoio = new (require('shoio'))()
 
 shoio.createModel("author", function Author({ Book }){
-	this.hasMany(Book)
+	this.hasMany("book") // ?
 	return {
 		moreBooks : ( query ) => {
 			// Promise
@@ -10,7 +10,7 @@ shoio.createModel("author", function Author({ Book }){
 })
 
 shoio.createModel("book", function Book({ Author }){
-	this.hasMany(Author)
+	this.hasMany("author") // ?
 	return {
 		bestRated : ( query ) => {
 			// Promise
