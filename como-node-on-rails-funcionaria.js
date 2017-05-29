@@ -26,10 +26,10 @@ shoio.createControllerForModel("book", function Book(){
 	}
 })
 
-shoio.createRouter(function Book(){
+// 
+shoio.createRouterForController("book", function Book(){
 	this.get('/best', 'getBestRated')
 	this.root('book')
-	return this;
 })
 
 shoio.listen(3000)
